@@ -1,95 +1,85 @@
-ï»¿#ifndef _ENEMY_H_
+#ifndef _ENEMY_H_
 #define _ENEMY_H_
-#include <vector>
+//È·±£Í·ÎÄ¼ş»¥Ïà°üº¬²»³ö´í
+#ifndef __ACTION_CCGRID3D_ACTION_H__
+#define __ACTION_CCGRID3D_ACTION_H__
 
-#include "Actor/Entity.h"
-#include "Actor/Knight.h"
-#include "Const/Const.h"
+#include "2d/CCActionGrid.h"
+#include "cocos2d.h"
+USING_NS_CC;//Ê¹ÓÃCOCOS2DÃüÃû¿Õ¼ä
 
-class Enemy : public Entity {
-    static constexpr INT32 SIGHTRANGE = 340;
-	INT32 ATTACKRANGE = 150;//å°†ATTACKRANGEä¿®æ”¹ä¸ºå¯è‡ªè¡Œè®¾ç½®ï¼Œæ–¹ä¾¿åˆ›é€ ä¸åŒæ€ªç‰©ï¼Œé»˜è®¤ä¸º150
+class Weapon;//ÎäÆ÷£¬½øĞĞĞ­µ÷¸ü¸Ä
 
+class Enemy :public Sprite
+{
+	static constexpr INT32 SIGHTRANGE = 340;
+	static constexpr float moveSpeed = 200.0f;//ÒÆ¶¯ËÙ¶È£¬constexprÓÃÓÚC++ 11ºó£¬±íÊ¾³£Á¿
+	INT32 ATTACKRANGE = 0;
 public:
-	Enemy() = default;
-
+	Enemy();
 	~Enemy();
 
-	CREATE_FUNC(Enemy);
-
+	static Enemy* create(const std::string& filename);
 	virtual bool init();
+	Sprite* sprite;
+	unsigned int getHP() const;//»ñÈ¡HP
+	void setHP(unsigned int newHP);//ÉèÖÃHP
 
-public:
-	bool getIsAdded() const; //è·å–æ˜¯å¦æ·»åŠ åˆ°Vector ç”¨äºæ€ªç‰©æ³¢æ•°çš„å®ç°
+	unsigned int getArmor() const;//»ñÈ¡»¤¼×
+	void set_Armor(unsigned int newArmor);//ÉèÖÃ»¤¼×
 
-	void setIsAdded(bool); //è®¾ç½®æ˜¯å¦æ·»åŠ åˆ°Vector ç”¨äºæ€ªç‰©æ³¢æ•°çš„å®ç°
-
-	bool isCollideWithKnight(Knight* knight);
-
+	unsigned int getMP() const;//»ñÈ¡MP
+	void setMP(unsigned int newMP);//ÉèÖÃMP
+	bool isCrash(Knight* knight);
+	void spriteChangeDirection();
 	void setType(int type);
+	Sprite* getSprite() { return this->sprite; }
+	void bindSprite(Sprite* sprite, INT32 layer) {
+		this->sprite = sprite;
+		this->sprite->setGlobalZOrder(layer);
 
+		//½«entityÖĞĞÄºÍspriteÖĞĞÄÖØºÏ
+		Size size = this->sprite->getContentSize();
+		this->setContentSize(size); //ÉèÖÃ´óĞ¡
+
+		this->setAnchorPoint(Point(0.5f, 0.5f)); //ÉèÖÃÃªµã
+		setPosition(Point(.0f, .0f));
+
+
+		this->addChild(sprite);
+		sprite->setPosition(Point(size.width / 2, size.height / 2));
+	}
 	void aiOfEnemy(Knight* knight, const BattleRoom* battleRoom);
+	void addKeyboardEvents();//¼üÅÌÊÂ¼ş¼àÌı
+	void moveUpdate(float tmd);
 
-	BattleRoom* getAtBattleRoom() const; //è·å–æ‰€åœ¨æˆ¿é—´
-
-	void bindAtBattleRoom(BattleRoom*); //ç»‘å®šæ‰€åœ¨æˆ¿é—´
-
-	void attackKnight(int);
-
-	void fireBullet(Vec2 fireSpeed);
-
-	Weapon*& getWeapon();
-
-	INT32 startCount;
 
 private:
-	void patrolRoute(const BattleRoom* battleRoom, Knight* knight);
-
-	void attackTheKnight(Knight* knight, float disBetweenEnemyAndKnight, const BattleRoom* battleRoom);
-
+	int gold = 0;//½ğÇ®
+	void attackTheKnight(Knight* knight, float disBetweenEnemyAndKnight, const BattleRoom* battleRoom);//++++
+	unsigned int maxHP = 5;//×î´óÉúÃüÖµ
+	unsigned int HP = maxHP;//µ±Ç°ÉúÃüÖµ
+	bool is_Live = true;//ÓÃÓÚÅĞ¶¨ÊÇ·ñ±»»÷É±
 	void setAttackRange();
+	void simpleAttack(Knight* knight, float disBetweenEnemyAndKnight);
 
-private:
-	void archerAttack(Knight* knight, float disBetweenEnemyAndKnight);//å½“æ•Œäººè®¾å®šç±»å‹ä¸ºå¼“ç®­æ‰‹æ—¶è°ƒç”¨çš„æ”»å‡»å‡½æ•°
+	void crashAttack(Knight* knight, float disBetweenEnemyAndKnight, const BattleRoom* battleRoom);
 
-	void boarAttack(Knight* knight, float disBetweenEnemyAndKnight, const BattleRoom* battleRoom);//å½“æ•Œäººè®¾å®šç±»å‹ä¸ºé‡çŒªæ—¶è°ƒç”¨çš„æ”»å‡»å‡½æ•°
 
-	void spearAttack(Knight* knight, float disBetweenEnemyAndKnight);//å½“æ•Œäººè®¾å®šç±»å‹ä¸ºæŒçŸ›æ€ªç‰©æ—¶è°ƒç”¨çš„æ”»å‡»å‡½æ•°
+	void magicAttack(Knight* knight, float disBetweenEnemyAndKnight);
 
-	void gunnerAttack(Knight* knight, float disBetweenEnemyAndKnight);//
+	void gunnerAttack(Knight* knight, float disBetweenEnemyAndKnight);
 
-	INT32 boarRushCount;
-	bool boarRest = false;
-	bool haveAttacked = false;
-	float boarBumpDirection[2] = { 1.0,0.0 };
-	int restCount = 0;
+	Weapon* weapon = nullptr;//»ñÈ¡µ±Ç°ÎäÆ÷
+	unsigned int damage = 0;//ÉËº¦
+	float attackSpeed = 0;//¹¥»÷ËÙ¶È£¬µ÷ÓÃÎäÆ÷½øĞĞ¸³Öµ
 
-private:
+	float moveSpeedX = 0.0f;  //x·½ÏòÒÆ¶¯ËÙ¶È
+	float moveSpeedY = 0.0f; //y·½ÏòÒÆ¶¯ËÙ¶È
 	INT32 enemyType = 0;
-
-	INT32 paceCount = 0;  //ç”¨äºä¿è¯è‡³å°‘20æ­¥éƒ½åœ¨èµ°åŒä¸€æ–¹å‘
-	INT32 wayOfPace = -1;  //é€‰æ‹©èµ°çš„æ–¹å‘
-	INT32 attackTimeCount = 1;
-	std::vector<INT32> wayCanBeSelected;  //å¯ä¾›é€‰æ‹©çš„è¡Œèµ°æ–¹å‘
-	float shiftSeed = 0.0f;
-	INT32 followCount = 0;
-	bool isAdded;  //æ˜¯å¦æ·»åŠ åˆ°Vector ç”¨äºæ€ªç‰©æ³¢æ•°çš„å®ç°
-
-protected:
-
-	float moveSpeedX = 0;
-	float moveSpeedY = 0;
-	bool inRoom(const BattleRoom* battleRoom, Point myPos);
-	virtual void spriteChangeDirection();
-	INT32 lastHP;
-	bool beAttacked = false;
-	INT32 shakeTimeCount = 0;
-	void shake(const BattleRoom* battleRoom);
-
-	BattleRoom* atBattleRoom = nullptr; //æ•Œäººå¯¹åº”æˆ¿é—´
-
-	Weapon* weapon = nullptr;
-
+	bool isAdded;  //ÊÇ·ñÌí¼Óµ½Vector ÓÃÓÚ¹ÖÎï²¨ÊıµÄÊµÏÖ
+	bool inRoom(const BattleRoom* battleRoom, Point myPos);//*************
 };
 
+#endif
 #endif

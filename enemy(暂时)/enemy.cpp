@@ -1,22 +1,24 @@
-#include "enemy.h"
-#include "Scene/BattleRoom.h"
-#include "Scene/BattleScene.h"
-
+#include "Enemy.h"
+#include "Knight.h"
+#include "BattleRoom.h"
+#include "BattleScene.h"
+Enemy::Enemy() {}
 Enemy::~Enemy() {}
 
-BattleRoom* Enemy::getAtBattleRoom() const { return this->atBattleRoom; }
-
-void Enemy::bindAtBattleRoom(BattleRoom* room) { this->atBattleRoom = room; }
-
-Weapon*& Enemy::getWeapon() { return this->weapon; }
-
-bool Enemy::getIsAdded() const { return this->isAdded; }
-
-void Enemy::setIsAdded(bool status) { this->isAdded = status; }
+/*Enemy* Enemy::create(const std::string& filename)
+{
+	Enemy* Enemy = new(std::nothrow)Enemy();
+	if (Enemy && Enemy->initWithFile(filename))
+	{
+		Enemy->autorelease();
+		return Enemy;
+	}
+	CC_SAFE_DELETE(Enemy);
+	return nullptr;
+}*/
 
 bool Enemy::init() {
 	isKilled = isAdded = false;
-
 	this->weapon = Weapon::create();
 	this->weapon->bindSprite(Sprite::create(), LayerPlayer + 1);
 	this->weapon->setWeaponState(true);
@@ -39,32 +41,27 @@ bool Enemy::isCrash(Knight* knight) {
 
 void Enemy::setType(int type) {
 	enemyType = type;
-	boarRushCount = 0;
-	setAttackRange();
-
-	INT32 addedHp = BattleScene::getSceneNumber();
-	addedHp = addedHp % 5 == 0 ? addedHp / 5 - 1 : addedHp / 5;
-
+	/*setAttackRange();*/
 	switch (type) {
 	case 0: //会射弹幕的妖精
-		lastHP = HP = 8 + addedHp;
-		this->weapon->setAttack(4);
+		maxHP = HP = 8 ;
+		/*this->weapon->setAttack(4);
 		this->weapon->setBulletType(1);
-		this->weapon->setFireSpeed(8.0f);
+		this->weapon->setFireSpeed(8.0f);*/
 		break;
 	case 1: //只会撞的小怪
-		lastHP = HP = 10 + addedHp;
+		maxHP = HP = 10 ;
 		this->weapon = nullptr;
 		break;
 	case 2: //攻击距离较长的小怪
-		lastHP = HP = 10 + addedHp;
+		maxHP = HP = 10;
 		this->weapon = nullptr;
 		break;
 	case 3: //攻击距离最长的小怪
-		lastHP = HP = 9 + addedHp;
-		this->weapon->setAttack(3);
+		maxHP = HP = 9;
+		/*this->weapon->setAttack(3);
 		this->weapon->setFireSpeed(6.0f);
-		this->weapon->setBulletType(2);
+		this->weapon->setBulletType(2);*/
 		break;
 	}
 }
@@ -89,7 +86,7 @@ void Enemy::setAttackRange() {
 	}
 }
 
-bool Enemy::inRoom(const BattleRoom* battleRoom, Point myPos) {
+/*bool Enemy::inRoom(const BattleRoom* battleRoom, Point myPos) {
 	Point upLeftPos = battleRoom->getUpleftVertex();
 	Point downRightPos = battleRoom->getDownRightVertex();
 	if (myPos.x >= upLeftPos.x && myPos.x <= downRightPos.x &&
@@ -97,7 +94,7 @@ bool Enemy::inRoom(const BattleRoom* battleRoom, Point myPos) {
 		return true;
 	}
 	return false;
-}
+}*/
 
 void Enemy::spriteChangeDirection() {
 	if (moveSpeedX == 0) {
@@ -111,26 +108,15 @@ void Enemy::spriteChangeDirection() {
 	}
 }
 
-void Enemy::shake(const BattleRoom* battleRoom) {
-	auto enemyPos = this->getPosition();
-	if (shakeTimeCount++ % 2) {
-		if (inRoom(battleRoom, Point(enemyPos.x + 15, enemyPos.y))) {
-			this->setPosition(Point(enemyPos.x + 15, enemyPos.y));
-		}
-	}
-	else {
-		if (inRoom(battleRoom, Point(enemyPos.x - 15, enemyPos.y))) {
-			this->setPosition(Point(enemyPos.x - 15, enemyPos.y));
-		}
-	}
-	if (shakeTimeCount >= 4) {
-		shakeTimeCount = 0;
-		beAttacked = false;
-	}
+void Enemy::moveUpdate(float tmd, float moveSpeedX, float moveSpeedY)
+{
+	float trueSpeedX = moveSpeedX / 60.0f;
+	float trueSpeedY = moveSpeedY / 60.0f;
+	Vec2 direction;
+	direction.set(trueSpeedX, trueSpeedY);
+	auto moveBy = MoveBy::create(1 / 60.0f, direction);
+	this->runAction(Sequence::create(moveBy, nullptr));
 }
-
-
-
 
 void Enemy::aiOfEnemy(Knight* knight, const BattleRoom* battleRoom) {
 	if (knight == nullptr || battleRoom == nullptr) {
@@ -143,12 +129,10 @@ void Enemy::aiOfEnemy(Knight* knight, const BattleRoom* battleRoom) {
 		enemyPos.getDistance(knightPos);  //获取二者距离，用于后续判断
 
 	if (disBetweenEnemyAndKnight > SIGHTRANGE) {
-		patrolRoute(battleRoom, knight);
+		/*patrolRoute(battleRoom, knight);*/
 
 	}
 	else {
-		paceCount = 0;
-		wayOfPace = -1;
 		if (disBetweenEnemyAndKnight > ATTACKRANGE) {
 			moveSpeedX = 3.0f * (knightPos.x - enemyPos.x) / disBetweenEnemyAndKnight;
 			moveSpeedY = 3.0f * (knightPos.y - enemyPos.y) / disBetweenEnemyAndKnight;
@@ -165,19 +149,18 @@ void Enemy::aiOfEnemy(Knight* knight, const BattleRoom* battleRoom) {
 
 }
 
-void Enemy::attackTheKnight(Knight* knight,
-	float disBetweenEnemyAndKnight, const BattleRoom* battleRoom) {
+void Enemy::attackTheKnight(Knight* knight,float disBetweenEnemyAndKnight, const BattleRoom* battleRoom) {
 	if (disBetweenEnemyAndKnight < ATTACKRANGE) {
 		switch (enemyType)
 		{
 		case 0:
-			archerAttack(knight, disBetweenEnemyAndKnight);
+			simpleAttack(knight, disBetweenEnemyAndKnight);
 			break;
 		case 1:
-			boarAttack(knight, disBetweenEnemyAndKnight, battleRoom);
+			crashAttack(knight, disBetweenEnemyAndKnight, battleRoom);
 			break;
 		case 2:
-			spearAttack(knight, disBetweenEnemyAndKnight);
+			magicAttack(knight, disBetweenEnemyAndKnight);
 			break;
 		case 3:
 			gunnerAttack(knight, disBetweenEnemyAndKnight);
@@ -188,3 +171,27 @@ void Enemy::attackTheKnight(Knight* knight,
 	}
 }
 
+
+void simpleAttack(Knight* knight, float disBetweenEnemyAndKnight)
+{
+
+
+}
+
+void crashAttack(Knight* knight, float disBetweenEnemyAndKnight, const BattleRoom* battleRoom)
+{
+
+
+}
+
+
+void magicAttack(Knight* knight, float disBetweenEnemyAndKnight)
+{
+
+}
+
+void gunnerAttack(Knight* knight, float disBetweenEnemyAndKnight)
+{
+
+
+}
