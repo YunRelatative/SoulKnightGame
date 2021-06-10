@@ -31,6 +31,7 @@ public:
 	bool isCrash(Knight* knight);
 	void spriteChangeDirection();
 	void setType(int type);
+	void addEvent();
 	Sprite* getSprite() { return this->sprite; }
 	void bindSprite(Sprite* sprite, INT32 layer) {
 		this->sprite = sprite;
@@ -49,7 +50,7 @@ public:
 	}
 	void aiOfEnemy(Knight* knight, const BattleRoom* battleRoom);
 	void addKeyboardEvents();//¼üÅÌÊÂ¼ş¼àÌı
-	void Enemy::moveUpdate(float tmd, float moveSpeedX, float moveSpeedY);
+	void moveUpdate(Knight* knight, const BattleRoom* battleRoom);
 
 
 private:
