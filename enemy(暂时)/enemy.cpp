@@ -1,30 +1,29 @@
-#include "Enemy.h"
+#include "enemy.h"
 #include "Knight.h"
 #include "BattleRoom.h"
 #include "BattleScene.h"
+#include "weapon.h"
+#include "bullet.h"
+
 Enemy::Enemy() {}
 Enemy::~Enemy() {}
 
-/*Enemy* Enemy::create(const std::string& filename)
+Enemy* Enemy::create(const std::string& filename)
 {
-	Enemy* Enemy = new(std::nothrow)Enemy();
-	if (Enemy && Enemy->initWithFile(filename))
+	Enemy* enemy = new(std::nothrow) Enemy();
+	if (enemy && enemy->initWithFile(filename))
 	{
-		Enemy->autorelease();
-		return Enemy;
+		enemy->autorelease();
+		return enemy;
 	}
-	CC_SAFE_DELETE(Enemy);
+	CC_SAFE_DELETE(enemy);
 	return nullptr;
-}*/
+}
 
-bool Enemy::init() {
-	isKilled = isAdded = false;
-	this->weapon = Weapon::create();
-	this->weapon->bindSprite(Sprite::create(), LayerPlayer + 1);
-	this->weapon->setWeaponState(true);
-	this->weapon->setMPConsumption(0);
-	this->addChild(weapon);
-	this->weapon->setVisible(false);
+bool Enemy::init() 
+{
+	isKilled = false;
+	isAdded = true;
 	return true;
 }
 
@@ -41,27 +40,22 @@ bool Enemy::isCrash(Knight* knight) {
 
 void Enemy::setType(int type) {
 	enemyType = type;
-	/*setAttackRange();*/
+	setAttackRange();
 	switch (type) {
 	case 0: //会射弹幕的妖精
 		maxHP = HP = 8 ;
-		/*this->weapon->setAttack(4);
-		this->weapon->setBulletType(1);
-		this->weapon->setFireSpeed(8.0f);*/
+
 		break;
 	case 1: //只会撞的小怪
 		maxHP = HP = 10 ;
-		this->weapon = nullptr;
+
 		break;
 	case 2: //攻击距离较长的小怪
 		maxHP = HP = 10;
-		this->weapon = nullptr;
 		break;
 	case 3: //攻击距离最长的小怪
 		maxHP = HP = 9;
-		/*this->weapon->setAttack(3);
-		this->weapon->setFireSpeed(6.0f);
-		this->weapon->setBulletType(2);*/
+		
 		break;
 	}
 }
@@ -86,7 +80,7 @@ void Enemy::setAttackRange() {
 	}
 }
 
-/*bool Enemy::inRoom(const BattleRoom* battleRoom, Point myPos) {
+bool Enemy::inRoom(const BattleRoom* battleRoom, Point myPos) {
 	Point upLeftPos = battleRoom->getUpleftVertex();
 	Point downRightPos = battleRoom->getDownRightVertex();
 	if (myPos.x >= upLeftPos.x && myPos.x <= downRightPos.x &&
@@ -94,17 +88,17 @@ void Enemy::setAttackRange() {
 		return true;
 	}
 	return false;
-}*/
+}
 
 void Enemy::spriteChangeDirection() {
 	if (moveSpeedX == 0) {
 		return;
 	}
 	if (moveSpeedX < 0) {
-		this->getSprite()->setFlipX(true);
+		this->getSprite()->setFlippedX(true);
 	}
 	else {
-		this->getSprite()->setFlipX(false);
+		this->getSprite()->setFlippedX(false);
 	}
 }
 
@@ -172,26 +166,43 @@ void Enemy::attackTheKnight(Knight* knight,float disBetweenEnemyAndKnight, const
 }
 
 
-void simpleAttack(Knight* knight, float disBetweenEnemyAndKnight)
+void Enemy::simpleAttack(Knight* knight, float disBetweenEnemyAndKnight)
 {
+	bullet* firebullet = bullet::create("enemybullet1.png");
+	Vec2 target = knight->getPosition() - this->getPosition();
+	fireSpeed = 8.0f;
+	firebullet->setPosition(this->getPosition());
+	firebullet->setSpeed(fireSpeed);
+	firebullet->shoot(firebullet, target);
+}
 
+void Enemy::crashAttack(Knight* knight, float disBetweenEnemyAndKnight, const BattleRoom* battleRoom)
+{
+	auto enemyPos = this->getPosition();
+	auto knightPos = knight->getPosition();
+	moveSpeedX = 3.0f * (knightPos.x - enemyPos.x) / disBetweenEnemyAndKnight;
+	moveSpeedY = 3.0f * (knightPos.y - enemyPos.y) / disBetweenEnemyAndKnight;
 
 }
 
-void crashAttack(Knight* knight, float disBetweenEnemyAndKnight, const BattleRoom* battleRoom)
+
+void Enemy::magicAttack(Knight* knight, float disBetweenEnemyAndKnight)
 {
-
-
+	bullet* firebullet = bullet::create("enemybullet2.png");
+	Vec2 target = knight->getPosition() - this->getPosition();
+	fireSpeed = 6.0f;
+	firebullet->setPosition(this->getPosition());
+	firebullet->setSpeed(fireSpeed);
+	firebullet->shoot(firebullet, target);
 }
 
-
-void magicAttack(Knight* knight, float disBetweenEnemyAndKnight)
+void Enemy::gunnerAttack(Knight* knight, float disBetweenEnemyAndKnight)
 {
-
-}
-
-void gunnerAttack(Knight* knight, float disBetweenEnemyAndKnight)
-{
-
+	bullet* firebullet = bullet::create("enemybullet2.png");
+	Vec2 target = knight->getPosition() - this->getPosition();
+	fireSpeed = 2.0f;
+	firebullet->setPosition(this->getPosition());
+	firebullet->setSpeed(fireSpeed);
+	firebullet->shoot(firebullet, target);
 
 }

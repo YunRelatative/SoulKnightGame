@@ -3,7 +3,6 @@
 //确保头文件互相包含不出错
 #ifndef __ACTION_CCGRID3D_ACTION_H__
 #define __ACTION_CCGRID3D_ACTION_H__
-
 #include "2d/CCActionGrid.h"
 #include "cocos2d.h"
 USING_NS_CC;//使用COCOS2D命名空间
@@ -13,7 +12,6 @@ class Weapon;//武器，进行协调更改
 class Enemy :public Sprite
 {
 	static constexpr INT32 SIGHTRANGE = 340;
-	static constexpr float moveSpeed = 200.0f;//移动速度，constexpr用于C++ 11后，表示常量
 	INT32 ATTACKRANGE = 0;
 public:
 	Enemy();
@@ -51,7 +49,7 @@ public:
 	}
 	void aiOfEnemy(Knight* knight, const BattleRoom* battleRoom);
 	void addKeyboardEvents();//键盘事件监听
-	void moveUpdate(float tmd);
+	void Enemy::moveUpdate(float tmd, float moveSpeedX, float moveSpeedY);
 
 
 private:
@@ -62,7 +60,7 @@ private:
 	bool is_Live = true;//用于判定是否被击杀
 	void setAttackRange();
 	void simpleAttack(Knight* knight, float disBetweenEnemyAndKnight);
-
+	float fireSpeed=2.0f;
 	void crashAttack(Knight* knight, float disBetweenEnemyAndKnight, const BattleRoom* battleRoom);
 
 
@@ -77,7 +75,8 @@ private:
 	float moveSpeedX = 0.0f;  //x方向移动速度
 	float moveSpeedY = 0.0f; //y方向移动速度
 	INT32 enemyType = 0;
-	bool isAdded;  //是否添加到Vector 用于怪物波数的实现
+	bool isAdded;  
+	bool isKilled;
 	bool inRoom(const BattleRoom* battleRoom, Point myPos);//*************
 };
 
