@@ -37,14 +37,12 @@ public:
     virtual bool init();
     CREATE_FUNC(SoulKnight);
     void menuCloseCallback(cocos2d::Ref* pSender);
-    void setViewPointCenter(const Point& position, TMXTiledMap* _tileMap);
     void SetCenterPoint(Point center, TMXTiledMap* _tileMap);
+    void update(float dt);
 private:
     // _tileMap;
-   // Sprite* _player;
-  //  Point _beginPoint;
-  //  TMXLayer* _meta;//’œ∞≠ŒÔ
+    Sprite* _player;
+    TMXTiledMap* map;
+    TMXLayer* _meta;//ÈöúÁ¢çÁâ©
   
 };
-
-#endif // __SoulKnight_SCENE_H__
