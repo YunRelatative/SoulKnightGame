@@ -1,14 +1,10 @@
-
 #include "1stScene.h"
-
+#include "Weapon.h"
+#include "Knight.h"
 USING_NS_CC;
-
+using namespace std;
 Scene* SoulKnight::createScene()
 {
-   // auto scene = Scene::create();
-  //  auto layer = SoulKnight::create();
-  //  scene->addChild(layer);
-
     return SoulKnight::create();
 }
 
@@ -25,10 +21,10 @@ static void problemLoading(const char* filename)
 //    //float duration = 0.f;
 //    //Size visibleSize = Director::getInstance()->getVisibleSize();
 //    //const int tag = 10;
-//    ////µØÍ¼¸úËæµãÒÆ¶¯
+//    ////åœ°å›¾è·Ÿéšç‚¹ç§»åŠ¨
 //    //float x = (float)MAX(position.x, visibleSize.width / 2);
 //    //float y = (float)MAX(position.y, visibleSize.height / 2);
-//    //»ñÈ¡µØÍ¼²ãµÄµØÍ¼
+//    //è·å–åœ°å›¾å±‚çš„åœ°å›¾
 //   // auto tiledMap =_;
 //
 //   // auto tiledMap = m_pMapLayer->getTiledMap();
@@ -37,19 +33,19 @@ static void problemLoading(const char* filename)
 //    //auto tileSize = tiledMap->getTileSize();
 //    //auto mapSize = tiledMap->getMapSize();
 //    //auto mapSizePixel = Size(tileSize.width * mapSize.width, tileSize.height * mapSize.height);
-//    ////²»ÈÃÏÔÊ¾ÇøÓò³¬¹ıµØÍ¼µÄ±ß½ç
+//    ////ä¸è®©æ˜¾ç¤ºåŒºåŸŸè¶…è¿‡åœ°å›¾çš„è¾¹ç•Œ
 //    //x = (float)MIN(x, (mapSizePixel.width - visibleSize.width / 2.f));
 //    //y = (float)MIN(y, (mapSizePixel.height - visibleSize.height / 2.f));
-//    ////Êµ¼ÊÒÆ¶¯µÄÎ»ÖÃ
+//    ////å®é™…ç§»åŠ¨çš„ä½ç½®
 //    //Point actualPosition = Point(x, y);
-//    ////ÆÁÄ»ÖĞĞÄÎ»ÖÃ×ø±ê
+//    ////å±å¹•ä¸­å¿ƒä½ç½®åæ ‡
 //    //Point centerOfView = Point(visibleSize.width / 2, visibleSize.height / 2);
 //
 //    //Point delta = centerOfView - actualPosition;
 //
 //    //Action* action = nullptr;
 //
-//    ////µØÍ¼ÔË¶¯
+//    ////åœ°å›¾è¿åŠ¨
 //    //if (duration < FLT_EPSILON)
 //    //{
 //    //    action = Place::create(delta);
@@ -70,36 +66,36 @@ static void problemLoading(const char* filename)
 //void SoulKnight::setViewpointCenter(Point position)
 //{
 //
-//    // Çó³öÆÁÄ»µÄ·¶Î§°üÀ¨¿íºÍ¸ß  
+//    // æ±‚å‡ºå±å¹•çš„èŒƒå›´åŒ…æ‹¬å®½å’Œé«˜  
 //    Size winSize = Director::sharedDirector()->getWinSize();
-//    //ÏÔÊ¾ÆÁÄ»ÖĞĞÄµãµÄ×ø±ê´óÓÚÆÁÄ»¿íºÍ¸ßµÄÒ»°ë  
+//    //æ˜¾ç¤ºå±å¹•ä¸­å¿ƒç‚¹çš„åæ ‡å¤§äºå±å¹•å®½å’Œé«˜çš„ä¸€åŠ  
 //    int x = MAX(position.x, winSize.width / 2);
 //    int y = MAX(position.y, winSize.height / 2);
 //
-//    //Çó³öµÄÊÇÕû¸öÍßÆ¬µØÍ¼µÄ¿í  
-//    //_tileMap->getMapSize().widthÍßÆ¬µØÍ¼ºáÏòÓĞ¶àÉÙ¸öÍßÆ¬  
-//    //_tileMap->getTileSize().widthÃ¿Ò»¸öÍßÆ¬µÄ¿í¶È  
+//    //æ±‚å‡ºçš„æ˜¯æ•´ä¸ªç“¦ç‰‡åœ°å›¾çš„å®½  
+//    //_tileMap->getMapSize().widthç“¦ç‰‡åœ°å›¾æ¨ªå‘æœ‰å¤šå°‘ä¸ªç“¦ç‰‡  
+//    //_tileMap->getTileSize().widthæ¯ä¸€ä¸ªç“¦ç‰‡çš„å®½åº¦  
 //    int mapWidth = _tileMap->getMapSize().width * _tileMap->getTileSize().width;
 //
 //
-//    //Çó³öµÄÊÇÕû¸öÍßÆ¬µØÍ¼µÄ¸ß  
-//    //_tileMap->getMapSize().heightÍßÆ¬µØÍ¼×İÏòÓĞ¶àÉÙ¸öÍßÆ¬  
-//    //_tileMap->getTileSize().heightÃ¿Ò»¸öÍßÆ¬µÄ¸ß¶È  
+//    //æ±‚å‡ºçš„æ˜¯æ•´ä¸ªç“¦ç‰‡åœ°å›¾çš„é«˜  
+//    //_tileMap->getMapSize().heightç“¦ç‰‡åœ°å›¾çºµå‘æœ‰å¤šå°‘ä¸ªç“¦ç‰‡  
+//    //_tileMap->getTileSize().heightæ¯ä¸€ä¸ªç“¦ç‰‡çš„é«˜åº¦  
 //
 //    int mapHeight = _tileMap->getMapSize().height * _tileMap->getTileSize().height;
 //
 //    x = MIN(x, mapWidth - winSize.width / 2);
 //    y = MIN(y, mapHeight - winSize.height / 2);
 //
-//    //Ä¿±êµã  
+//    //ç›®æ ‡ç‚¹  
 //    CCPoint actualPoint = ccp(x, y);
 //
-//    //ÆÁÄ»µÄÖĞĞÄµã  
+//    //å±å¹•çš„ä¸­å¿ƒç‚¹  
 //    CCPoint viewCenterPoint = ccp(winSize.width / 2, winSize.height / 2);
-//    //¼ÆËã³öÖØÖÃÏÔÊ¾ÆÁÄ»µÄÖĞĞÄµã  
-//    //ccpSub ·µ»ØµÄÊÇviewCenterPoint.x - actualPoint.xºÍviewCenterPoint.y - actualPoint.y  
+//    //è®¡ç®—å‡ºé‡ç½®æ˜¾ç¤ºå±å¹•çš„ä¸­å¿ƒç‚¹  
+//    //ccpSub è¿”å›çš„æ˜¯viewCenterPoint.x - actualPoint.xå’ŒviewCenterPoint.y - actualPoint.y  
 //    CCPoint viewPoint = ccpSub(viewCenterPoint, actualPoint);
-//    //ÖØÖÃÏÔÊ¾ÆÁÄ»µÄÖĞĞÄµã  
+//    //é‡ç½®æ˜¾ç¤ºå±å¹•çš„ä¸­å¿ƒç‚¹  
 //    this->setPosition(viewPoint);
 //
 //}
@@ -107,7 +103,7 @@ bool SoulKnight::init()
 {
     //////////////////////////////
     // 1. super init first
-    if ( !Scene::init())
+    if (!Scene::init())
     {
         return false;
     }
@@ -120,21 +116,21 @@ bool SoulKnight::init()
   //      you may modify it.
   //   add a "close" icon to exit the progress. it's an autorelease object
     auto closeItem = MenuItemImage::create(
-                                           "CloseNormal.png",
-                                           "CloseSelected.png",
-                                           CC_CALLBACK_1(SoulKnight::menuCloseCallback, this));
+        "CloseNormal.png",
+        "CloseSelected.png",
+        CC_CALLBACK_1(SoulKnight::menuCloseCallback, this));
 
     if (closeItem == nullptr ||
-        closeItem ->getContentSize().width <= 0 ||
+        closeItem->getContentSize().width <= 0 ||
         closeItem->getContentSize().height <= 0)
     {
         problemLoading("'CloseNormal.png' and 'CloseSelected.png'");
     }
     else
     {
-        float x = origin.x + visibleSize.width - closeItem->getContentSize().width/2;
-        float y = origin.y + closeItem->getContentSize().height/2;
-        closeItem->setPosition(Vec2(x,y));
+        float x = origin.x + visibleSize.width - closeItem->getContentSize().width / 2;
+        float y = origin.y + closeItem->getContentSize().height / 2;
+        closeItem->setPosition(Vec2(x, y));
     }
 
     //// create menu, it's an autorelease object
@@ -155,40 +151,122 @@ bool SoulKnight::init()
     else
     {
         // position the label on the center of the screen
-        label->setPosition(Vec2(origin.x + visibleSize.width/2,
-                                origin.y + visibleSize.height - label->getContentSize().height));
+        label->setPosition(Vec2(origin.x + visibleSize.width / 2,
+            origin.y + visibleSize.height - label->getContentSize().height));
 
         // add the label as a child to this layer
         this->addChild(label, 1);
     }
-    
-    TMXTiledMap* _tileMap = TMXTiledMap::create("new-level-1.tmx");
-    _tileMap->setPosition(-900,-2500);
-        addChild(_tileMap);
-    //  //  TMXLayer* wall = _tileMap->getLayer("wall");
-         auto _player = Sprite::create("Knight.png");
-         _player->setPosition(1470, 2925);
-        /*auto objectsValue = _tileMap->getObjectGroup("player");
-        auto spawnPoint = objectsValue->getObject("player");
-        Point heroPoint;
-        heroPoint.x = spawnPoint.at("x").asFloat();
-        heroPoint.y = spawnPoint.at("y").asFloat();*/
-    //  // _player->setAnchorPoint(Point(0, 0));
-    ////    _player->setPosition(heroPoint);
-         _tileMap->addChild(_player);
-     //   SoulKnight::setViewPointCenter(_player->getPosition(),_tileMap);
+     _player = Knight::create("Knight.png");
+    map->setPosition(-900, -3100);
+    addChild(map);
+    _meta->setVisible(false);
+    _player->init();
+    _player -> setScale(0.6);
+   // map->setScale(1.4);
+   // _player->setPosition(1470, 2925);
+    // Inside the init method, after setting "_background =" 
+    CCASSERT(NULL != objects, "'Objects' object group not found");
+    auto spawnPoint = objects->getObject("SpawnPoint");
+    CCASSERT(!spawnPoint.empty(), "SpawnPoint object not found");
+    int x = spawnPoint["x"].asInt();
+    int y = spawnPoint["y"].asInt();
+    _player->setPosition(x, y);
+  //  setViewPointCenter(_player->getPosition());
+    map->addChild(_player);
+    map->addChild(aWeapon);
+  //  aWeapon->setScale(0.75);
+    aWeapon->setPosition(x + 13, y - 13);
+   // _player->addChild(aWeapon);
+    scheduleUpdate();
     return true;
 }
+void SoulKnight::collisionStand()
+{
+    float x = this->getPositionX();				//è·å¾—heroçš„xåæ ‡ä½ç½®
+    float y = this->getPositionY();				//è·å¾—heroçš„yåæ ‡ä½ç½®
+    //int offset = 2;								//é‡åˆ°éšœç¢ç‰©åé˜²æ­¢å¡æ­»è¿›è¡Œå¾®å°ç§»åŠ¨çš„åç§»é‡
+    ////å½“åœæ­¢æ—¶å‘äººç‰©èƒŒå‘æ–¹å‘ç•¥å¾®ç§»åŠ¨2è±¡ç´ ,é˜²æ­¢äººç‰©åœ¨å›¾å—ä¸­å¡æ­».
+    //if (hState == LEFT)
+    //	this->setPosition(x + offset, y);
+    //else if (hState == UP)
+    //	this->setPosition(x, y - offset);
+    //else if (hState == RIGHT)
+    //	this->setPosition(x - offset, y);
+    //else if (hState == DOWN)
+    //	this->setPosition(x, y + offset);
+    //hState = STAND;								//è®¾ç½®äººç‰©çŠ¶æ€ä¸ºç«™ç«‹
+ //   _player->stopAllActions();					//åœæ­¢æ’­æ”¾èµ°åŠ¨åŠ¨ç”»
+    _player->stopAllActions();						//åœæ­¢äººç‰©èµ°åŠ¨åŠ¨ä½œ
 
-void SoulKnight::SetCenterPoint(Point center, TMXTiledMap* _tileMap)
+}
+void SoulKnight::update(float dt)
 {
     cocos2d::Size winSize = cocos2d::Director::getInstance()->getWinSize();
-    int x =MAX(center.x, winSize.width) / 2;
-    int y = MAX(center.y, winSize.height) / 2;
-    int mapSize = center.x / _tileMap->getContentSize().width * _tileMap->getMapSize().width;
-    //x = MIN(x, mapSize.width * tileSize.width - winSize.width / 2);
-    //y = MIN(y, mapSize.height * tileSize.height - winSize.height / 2);
+    auto actualPosition = _player->getPosition();
+    Point ViewPoint = Point(-900, -2500) - (actualPosition - Point(1470, 2925));
+    map->setPosition(ViewPoint);
+   // if (this->isTilePosBlocked(_player->getPosition()))
+    if (this->IfCollidable(_player->getPosition()))
+        collisionStand();
+    Point tileCoord = SoulKnight::tileCoordForPosition(_player->getPosition());
 }
+Point SoulKnight::tileCoordForPosition(Point position)//è½¬æ¢æˆåœ°å›¾åæ ‡
+{
+    int x = position.x / map->getTileSize().width;
+    int y = ((map->getMapSize().height * map->getTileSize().height) - position.y) / map->getTileSize().height+50;
+    return Point(x, y);
+}
+
+ Point SoulKnight::tilePosFromLocation(Point l)
+{
+    int x = l.x / map->getTileSize().width;
+    int y = l.y / map->getTileSize().height;
+
+    y = map->getMapSize().height - y+50;
+    return Vec2(x, y);
+}
+//åˆ¤æ–­è¯¥ç“¦ç‰‡æ˜¯å¦ä¸ºéšœç¢
+bool SoulKnight::isTilePosBlocked(Point l)
+{
+    //åˆ¤æ–­å½“å‰å—æ˜¯å¦ä¸ºç¢°æ’å—
+    Point tilpos = tilePosFromLocation(l);				//å°†å¸¦å…¥çš„åæ ‡è½¬ä¸ºå—åæ ‡
+    //TMXLayer* clayer = ->layerNamed("collision");		//é€šè¿‡å±‚åå­—è·å¾—è¯¥å±‚å¯¹è±¡
+    //clayer->setVisible(true);
+    int tileGID = _meta->getTileGIDAt(tilpos);				//è·å¾—è¯¥å—çš„GIDæ ‡è¯†åˆ«
+    auto properties = map->getPropertiesForGID(1).asValueMap();
+    if (tileGID != 0)
+    {
+
+        if (properties["Collidable"].asString()== "True")//å¯ä»¥ç¢°æ’ï¼Œmetaå±‚
+            return true;
+    }
+    return false;
+}
+
+bool SoulKnight::IfCollidable(Point position)
+{
+    Point tileCoord = this->tileCoordForPosition(position);
+    int tileGid = _meta->getTileGIDAt(tileCoord);
+    if (tileGid) {
+        //auto properties = map->getPropertiesForGID(tileGid).properties.asValueMap();
+        //if (!properties.empty()) {
+        //    auto collision = properties["Collidable"].asString();
+        //    if ("True" == collision) {
+        //        return 1;
+        auto properties = map->getPropertiesForGID(tileGid);
+        auto mid = properties.asValueMap();
+        if (!mid.empty()) {
+            auto collision = mid.at("Collidable").asString();
+            if ("True" == collision) {
+                return 1;
+            }
+        }
+    }
+    return 0;
+}
+
+
 void SoulKnight::menuCloseCallback(Ref* pSender)
 {
     //Close the cocos2d-x game scene and quit the application

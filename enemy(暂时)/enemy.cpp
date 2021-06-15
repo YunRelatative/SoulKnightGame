@@ -24,7 +24,14 @@ bool Enemy::init()
 {
 	isKilled = false;
 	isAdded = true;
+	setType(enemyType);
+	addEvent();
 	return true;
+}
+void Enemy::addEvent() 
+{
+	this->schedule(SEL_SCHEDULE(Enemy::moveUpdate),1.0f);
+
 }
 
 
@@ -34,7 +41,6 @@ bool Enemy::isCrash(Knight* knight) {
 
 	Point enemyPosition = getPosition();
 
-	
 	return entityRect.containsPoint(enemyPosition);
 }
 
@@ -102,8 +108,9 @@ void Enemy::spriteChangeDirection() {
 	}
 }
 
-void Enemy::moveUpdate(float tmd, float moveSpeedX, float moveSpeedY)
+void Enemy::moveUpdate(Knight* knight, const BattleRoom* battleRoom)
 {
+	aiOfEnemy(knight, battleRoom);
 	float trueSpeedX = moveSpeedX / 60.0f;
 	float trueSpeedY = moveSpeedY / 60.0f;
 	Vec2 direction;
@@ -135,10 +142,9 @@ void Enemy::aiOfEnemy(Knight* knight, const BattleRoom* battleRoom) {
 			attackTheKnight(knight, disBetweenEnemyAndKnight, battleRoom);
 		}
 	}
-
-	if (inRoom(battleRoom, Point(enemyPos.x + moveSpeedX, enemyPos.y + moveSpeedY))) {
-		this->setPosition(enemyPos.x + moveSpeedX, enemyPos.y + moveSpeedY);
-		spriteChangeDirection();
+	if (HP == 0)
+	{
+		this->unschedule(SEL_SCHEDULE(Enemy::moveUpdate));
 	}
 
 }
@@ -180,8 +186,8 @@ void Enemy::crashAttack(Knight* knight, float disBetweenEnemyAndKnight, const Ba
 {
 	auto enemyPos = this->getPosition();
 	auto knightPos = knight->getPosition();
-	moveSpeedX = 3.0f * (knightPos.x - enemyPos.x) / disBetweenEnemyAndKnight;
-	moveSpeedY = 3.0f * (knightPos.y - enemyPos.y) / disBetweenEnemyAndKnight;
+	moveSpeedX = 6.0f * (knightPos.x - enemyPos.x) / disBetweenEnemyAndKnight;
+	moveSpeedY = 6.0f * (knightPos.y - enemyPos.y) / disBetweenEnemyAndKnight;
 
 }
 
