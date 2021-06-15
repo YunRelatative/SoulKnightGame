@@ -1,15 +1,10 @@
-
 #include "1stScene.h"
 #include "Weapon.h"
 #include "Knight.h"
 USING_NS_CC;
-
+using namespace std;
 Scene* SoulKnight::createScene()
 {
-    // auto scene = Scene::create();
-   //  auto layer = SoulKnight::create();
-   //  scene->addChild(layer);
-
     return SoulKnight::create();
 }
 
@@ -162,31 +157,115 @@ bool SoulKnight::init()
         // add the label as a child to this layer
         this->addChild(label, 1);
     }
-
-    map = TMXTiledMap::create("new-level-1.tmx");
-    map->setPosition(-900, -2500);
+     _player = Knight::create("Knight.png");
+    map->setPosition(-900, -3100);
     addChild(map);
-    scheduleUpdate();
-    //meta=                               
-    _player = Knight::create("Knight.png");
+    _meta->setVisible(false);
     _player->init();
-    _player->setPosition(1470, 2925);
+    _player -> setScale(0.6);
+   // map->setScale(1.4);
+   // _player->setPosition(1470, 2925);
+    // Inside the init method, after setting "_background =" 
+    CCASSERT(NULL != objects, "'Objects' object group not found");
+    auto spawnPoint = objects->getObject("SpawnPoint");
+    CCASSERT(!spawnPoint.empty(), "SpawnPoint object not found");
+    int x = spawnPoint["x"].asInt();
+    int y = spawnPoint["y"].asInt();
+    _player->setPosition(x, y);
+  //  setViewPointCenter(_player->getPosition());
     map->addChild(_player);
-
-    rifle* aWeapon = rifle::create();
     map->addChild(aWeapon);
-    aWeapon->setPosition(_player->getPosition());
-
+  //  aWeapon->setScale(0.75);
+    aWeapon->setPosition(x + 13, y - 13);
+   // _player->addChild(aWeapon);
+    scheduleUpdate();
     return true;
 }
+void SoulKnight::collisionStand()
+{
+    float x = this->getPositionX();				//获得hero的x坐标位置
+    float y = this->getPositionY();				//获得hero的y坐标位置
+    //int offset = 2;								//遇到障碍物后防止卡死进行微小移动的偏移量
+    ////当停止时向人物背向方向略微移动2象素,防止人物在图块中卡死.
+    //if (hState == LEFT)
+    //	this->setPosition(x + offset, y);
+    //else if (hState == UP)
+    //	this->setPosition(x, y - offset);
+    //else if (hState == RIGHT)
+    //	this->setPosition(x - offset, y);
+    //else if (hState == DOWN)
+    //	this->setPosition(x, y + offset);
+    //hState = STAND;								//设置人物状态为站立
+ //   _player->stopAllActions();					//停止播放走动动画
+    _player->stopAllActions();						//停止人物走动动作
 
+}
 void SoulKnight::update(float dt)
 {
     cocos2d::Size winSize = cocos2d::Director::getInstance()->getWinSize();
     auto actualPosition = _player->getPosition();
-    auto ViewPoint = Point(-900, -2500) - (actualPosition - Point(1470, 2925));
+    Point ViewPoint = Point(-900, -2500) - (actualPosition - Point(1470, 2925));
     map->setPosition(ViewPoint);
+   // if (this->isTilePosBlocked(_player->getPosition()))
+    if (this->IfCollidable(_player->getPosition()))
+        collisionStand();
+    Point tileCoord = SoulKnight::tileCoordForPosition(_player->getPosition());
 }
+Point SoulKnight::tileCoordForPosition(Point position)//转换成地图坐标
+{
+    int x = position.x / map->getTileSize().width;
+    int y = ((map->getMapSize().height * map->getTileSize().height) - position.y) / map->getTileSize().height+50;
+    return Point(x, y);
+}
+
+ Point SoulKnight::tilePosFromLocation(Point l)
+{
+    int x = l.x / map->getTileSize().width;
+    int y = l.y / map->getTileSize().height;
+
+    y = map->getMapSize().height - y+50;
+    return Vec2(x, y);
+}
+//判断该瓦片是否为障碍
+bool SoulKnight::isTilePosBlocked(Point l)
+{
+    //判断当前块是否为碰撞块
+    Point tilpos = tilePosFromLocation(l);				//将带入的坐标转为块坐标
+    //TMXLayer* clayer = ->layerNamed("collision");		//通过层名字获得该层对象
+    //clayer->setVisible(true);
+    int tileGID = _meta->getTileGIDAt(tilpos);				//获得该块的GID标识别
+    auto properties = map->getPropertiesForGID(1).asValueMap();
+    if (tileGID != 0)
+    {
+
+        if (properties["Collidable"].asString()== "True")//可以碰撞，meta层
+            return true;
+    }
+    return false;
+}
+
+bool SoulKnight::IfCollidable(Point position)
+{
+    Point tileCoord = this->tileCoordForPosition(position);
+    int tileGid = _meta->getTileGIDAt(tileCoord);
+    if (tileGid) {
+        //auto properties = map->getPropertiesForGID(tileGid).properties.asValueMap();
+        //if (!properties.empty()) {
+        //    auto collision = properties["Collidable"].asString();
+        //    if ("True" == collision) {
+        //        return 1;
+        auto properties = map->getPropertiesForGID(tileGid);
+        auto mid = properties.asValueMap();
+        if (!mid.empty()) {
+            auto collision = mid.at("Collidable").asString();
+            if ("True" == collision) {
+                return 1;
+            }
+        }
+    }
+    return 0;
+}
+
 
 void SoulKnight::menuCloseCallback(Ref* pSender)
 {
