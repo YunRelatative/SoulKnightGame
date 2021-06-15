@@ -1,36 +1,24 @@
-#ifndef __StartScene_H__
-#define __StartScene_H__
+#ifndef __START_SCENE_H__
+#define __START_SCENE_H__
 
 #include "cocos2d.h"
-#include "editor-support/cocostudio/CCSGUIReader.h"
-#include "cocos-ext.h"
-#include "ui/CocosGUI.h"
-using namespace cocos2d::ui;
-using namespace cocostudio;
-using namespace cocos2d;
-USING_NS_CC_EXT;
+USING_NS_CC;
 
-class StartScene : public Scene {
-public:
-    static Scene* createScene();
-    virtual bool init();
-    CREATE_FUNC(StartScene);
-    void pauseBGmusic(); // ‘›Õ£±≥æ∞“Ù¿÷
-    void playBGmusic();  // ≤•∑≈±≥æ∞“Ù¿÷
-    void turnOnEffectMusic();  //ø™∆Ù“Ù–ß
-    void turnOffEffectMusic();  //πÿ±’“Ù–ß
-    bool BGmusic();  //≈–∂œ±≥æ∞“Ù¿÷ «∑Òø™∆Ù
-    bool effectMusic();  //≈–∂œ“Ù–ß ‹∑Òø™∆Ù
-    void playEffectMusic();
-
-    void BGmusicSelectedEvent(Ref* pSender, cocos2d::ui::CheckBox::EventType type);
-    void effectMusicSelectedEvent(Ref* pSender, cocos2d::ui::CheckBox::EventType type);
-  //  void NewGameEvent(Ref*,TouchEventType type);
+class StartScene : public cocos2d::Scene
+{
 private:
-    void initBGimage();  // ≥ı ºªØ±≥æ∞Õº∆¨
-    void initBGmusic();  // ≥ı ºªØ±≥æ∞“Ù¿÷
-    void loadUI();       // º”‘ÿUI
-    bool isBGmusicplaying;
-    bool isEffecMusicTurnOn;
+    MenuItemImage* startItem;
+    Menu* menu;
+    Sprite* StartPicture;
+    Sprite* Logo;
+public:
+    static cocos2d::Scene* createScene();
+
+    virtual bool init();
+    void menuSystemCallback(Ref* pSender);
+    void menuSceneChangeCallback(cocos2d::Ref* pSender);
+
+    CREATE_FUNC(StartScene);
 };
-#endif
+
+#endif 

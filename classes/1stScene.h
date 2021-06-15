@@ -48,15 +48,19 @@ public:
     Point tilePosFromLocation(Point l);
     bool isTilePosBlocked(Point l);
     void SoulKnight::collisionStand();
+  
     // void setViewPointCenter(Point position);
    // static TMXTiledMap* _map();
 private:
     Knight* _player;
     TMXTiledMap* map = TMXTiledMap::create("new-level-1.tmx");
-    rifle* aWeapon = rifle::create();
+    shotGun* aWeapon;
     TMXObjectGroup* objects = map->getObjectGroup("player");
     cocos2d::TMXLayer* _meta = map->getLayer("meta");//障碍物
     friend class Knight;
+    //PhysicsWorld* m_world;
 };
 
-#endif // __SoulKnight_SCENE_H__
+#endif 
+
+// __SoulKnight_SCENE_H__
