@@ -27,22 +27,36 @@
 
 #include "cocos2d.h"
 #include <algorithm>
+#include "Weapon.h"
+#include "Knight.h"
 
 USING_NS_CC;
+
+class Knight;
 
 class SoulKnight : public cocos2d::Scene
 {
 public:
-     static cocos2d::Scene* createScene();
+
+    static cocos2d::Scene* createScene();
     virtual bool init();
     CREATE_FUNC(SoulKnight);
     void menuCloseCallback(cocos2d::Ref* pSender);
-    void SetCenterPoint(Point center, TMXTiledMap* _tileMap);
     void update(float dt);
+    Point tileCoordForPosition(Point position);
+    bool IfCollidable(Point position);
+    Point tilePosFromLocation(Point l);
+    bool isTilePosBlocked(Point l);
+    void SoulKnight::collisionStand();
+    // void setViewPointCenter(Point position);
+   // static TMXTiledMap* _map();
 private:
-    // _tileMap;
-    Sprite* _player;
-    TMXTiledMap* map;
-    TMXLayer* _meta;//障碍物
-  
+    Knight* _player;
+    TMXTiledMap* map = TMXTiledMap::create("new-level-1.tmx");
+    rifle* aWeapon = rifle::create();
+    TMXObjectGroup* objects = map->getObjectGroup("player");
+    cocos2d::TMXLayer* _meta = map->getLayer("meta");//障碍物
+    friend class Knight;
 };
+
+#endif // __SoulKnight_SCENE_H__
