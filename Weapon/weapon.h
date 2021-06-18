@@ -1,6 +1,8 @@
 #pragma once
 #include "cocos2d.h"
 #include "bullet.h"
+#include "Knight.h"
+#include <vector> 
 class weapon :public cocos2d::Sprite
 {
 public:
@@ -8,6 +10,7 @@ public:
 	bullet* getWeaponBullet();
 	void setMP(float mp);
 	float getMP();
+
 protected:
 	bullet* weaponBullet = bullet::create("Projectile.png");
 	float theMp = 0;
@@ -32,3 +35,10 @@ public:
 protected:
 };
 
+class knife :public weapon
+{
+public:
+	static knife* create();
+	void knife::attack();
+
+};

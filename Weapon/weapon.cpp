@@ -57,6 +57,7 @@ shotGun* shotGun::create()
 	return nullptr;
 }
 
+
 void shotGun::shoot1(cocos2d::Vec2 position,cocos2d::Vec2 offset)
 {
 	bullet* bullet1 = bullet::create("Projectile.png");
@@ -81,7 +82,8 @@ void shotGun::shoot1(cocos2d::Vec2 position,cocos2d::Vec2 offset)
 		auto realDest = shootAmount + bullet2->getPosition();
 		auto actionMove = cocos2d::MoveTo::create(2.0f, realDest);
 		auto actionRemove = cocos2d::RemoveSelf::create();
-		bullet2->runAction(cocos2d::Sequence::create(actionMove, actionRemove, nullptr));
+		bullet2->runAction(cocos2d::Sequence::create(actionMove, nullptr));
+		//别忘记加remove
 	};
 	
 	auto callFunc = cocos2d::CallFunc::create(shoot2);
@@ -90,7 +92,44 @@ void shotGun::shoot1(cocos2d::Vec2 position,cocos2d::Vec2 offset)
 	auto realDest = shootAmount + bullet1->getPosition();
 	auto actionMove = cocos2d::MoveTo::create(2.0f, realDest);
 	auto actionRemove = cocos2d::RemoveSelf::create();
-	
-	bullet1->runAction(cocos2d::Sequence::create(actionMove, callFunc, actionRemove, nullptr));
+	//别忘记加remove
+	auto mySpawn = cocos2d::Spawn::createWithTwoActions(actionMove, callFunc);
+	bullet1->runAction(cocos2d::Sequence::create(mySpawn,nullptr));
 }
 
+//shotGun
+knife* knife::create()
+{
+	const char* pszFileName = "knife1.png";
+	knife* knifeA = new knife();
+	if (knifeA && knifeA->initWithFile(pszFileName))
+	{
+		knifeA->autorelease();
+		return knifeA;
+	}
+	CC_SAFE_DELETE(knifeA);
+	return nullptr;
+}
+
+void knife::attack()
+{
+	SpriteFrameCache* frameCache = SpriteFrameCache::getInstance();
+	frameCache->addSpriteFramesWithFile("bigknife/BigKnife.plist", "bigknife/BigKnife.png");
+	Animation* animation = Animation::create();
+	
+	char nameBuf[100];
+	for (int i = 0; i < 8; i++)
+	{
+		memset(nameBuf, 0, sizeof(nameBuf));
+		sprintf(nameBuf, "BigKnife%d.png", i );
+		animation->addSpriteFrame(frameCache->getSpriteFrameByName(nameBuf));
+	}
+	
+	animation->setDelayPerUnit(0.05f);
+	animation->setLoops(1);
+	animation->setRestoreOriginalFrame(true);
+	Animate* animate = Animate::create(animation);
+
+	this->runAction(animate);
+
+}

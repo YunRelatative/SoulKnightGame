@@ -16,7 +16,7 @@ void bullet::setSpeed(float theSpeed)
 }
 void bullet::shoot(cocos2d::Vec2 offset)
 {
-	//offset.normalize();
+	offset.normalize();
 	auto shootAmount = offset * 1000;
 	auto realDest = shootAmount + this->getPosition();
 	auto actionMove = cocos2d::MoveTo::create(this->speed, realDest);
