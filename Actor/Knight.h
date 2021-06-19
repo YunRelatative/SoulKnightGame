@@ -20,8 +20,12 @@ public:
 	cocos2d::TMXLayer* _meta = nullptr;//障碍物
 	void readMap(TMXTiledMap* newMap);
 
-	static Knight* create(const std::string& filename, weapon* const initialWeapon);
-	virtual bool init(const std::string& filename, weapon* const initialWeapon);
+	Animate* animateStand=nullptr;
+	Animate* animateWalk=nullptr;
+	void initAnimation();
+
+	static Knight* create(weapon* const initialWeapon);
+	virtual bool init(weapon* const initialWeapon);
 
 	unsigned int getGold() const;//获取金钱
 	void setGold(unsigned int newGold);//设置金钱
@@ -40,8 +44,7 @@ public:
 
 	void beHit(int damage);
 
-	Sprite* getView() const;
-	void setView(Sprite* const newSprite);
+	Sprite* getSprite() const;//获取sprite用于读取大小等
 
 	weapon* getWeapon() const;
 	void setWeapon(weapon* const newWeapon);
@@ -54,6 +57,9 @@ public:
 	void moveUpdateA(float tmd);//每帧移动
 	void moveUpdateW(float tmd);//每帧移动
 	void moveUpdateS(float tmd);//每帧移动
+	void moveUpdate(float tmd);//每帧移动
+
+	void animateUpdate(float tmd);//站立/行走动画切换
 
 	void armorResumeUpdate(float tmd);//自动回复护甲
 
@@ -63,6 +69,8 @@ public:
 	static void die();
 
 private:
+	ActionManager* actionManager;//管理动画
+
 	bool is_Live = true;//用于判定是否被击杀
 
 	int gold = 0;//金钱
@@ -78,13 +86,22 @@ private:
 	unsigned int maxMP = 200;//最大子弹数
 	unsigned int MP = maxMP;//当前子弹数
 
-	Sprite* knightView=nullptr;
+	Sprite* knightView=nullptr;//用于读取大小
+	Sprite* knightStand = nullptr;//显示站立动画
+	Sprite* knightWalk = nullptr;//显示行走动画
+
 	weapon* equipedWeapon = nullptr;//获取当前武器
 	unsigned int damage = 0;//伤害
 	float attackSpeed = 0;//攻击速度，调用武器进行赋值
 
 	float moveSpeedX = 0.0f;  //x方向移动速度
 	float moveSpeedY = 0.0f; //y方向移动速度
+
+	bool is_MoveUP = false;
+	bool is_MoveLeft = false;
+	bool is_MoveRight = false;
+	bool is_MoveDown = false;
+	bool is_Moving = false;
 
 	bool is_Interact = false;//可否进行交互
 	InteractMethod method;

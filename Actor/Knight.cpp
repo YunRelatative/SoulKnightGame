@@ -1,3 +1,5 @@
+#define AnimateEachTime 0.35f
+
 #include "Knight.h"
 #include "ui/CocosGUI.h"
 using namespace ui;
@@ -5,10 +7,10 @@ using namespace ui;
 Knight::Knight() {}
 Knight::~Knight() {}
 
-Knight* Knight::create(const std::string& filename,weapon* const initialWeapon)//分别输入图像名/初始武器
+Knight* Knight::create(weapon* const initialWeapon)//分别输入图像名/初始武器
 {
 	Knight* knight = new Knight();
-	if (knight && knight->init(filename,initialWeapon))
+	if (knight && knight->init(initialWeapon))
 	{
 		knight->autorelease();
 		return knight;
@@ -64,11 +66,7 @@ void Knight::setMP(unsigned int newMP)
 		this->MP = newMP;
 }
 
-Sprite* Knight::getView() const { return this->knightView; };
-void Knight::setView(Sprite* const newSprite)
-{
-	knightView = newSprite;
-}
+Sprite* Knight::getSprite() const { return this->knightView; };
 
 weapon* Knight::getWeapon() const { return this->equipedWeapon; }
 void Knight::setWeapon(weapon* const newWeapon)
@@ -114,19 +112,63 @@ void Knight::readMap(TMXTiledMap* newMap)
 	_meta=map->getLayer("meta");
 }
 
-bool Knight::init(const std::string& filename, weapon* const initialWeapon)
+void Knight::initAnimation()
 {
+	auto animationStand = Animation::create();
+	char nameSizeStand[30] = { 0 };
+	for (int i = 1; i <= 2; i++)
+	{
+		sprintf(nameSizeStand, "KnightImage/Stand%d.png", i);
+		animationStand->addSpriteFrameWithFile(nameSizeStand);
+	}
+	animationStand->setDelayPerUnit(AnimateEachTime);
+	animationStand->setLoops(-1);
+	animationStand->setRestoreOriginalFrame(true);
+	animateStand = Animate::create(animationStand);
+	
+	auto animationWalk = Animation::create();
+	char nameSizeWalk[30] = { 0 };
+	for (int i = 1; i <= 4; i++)
+	{
+		sprintf(nameSizeWalk, "KnightImage/Walk%d.png", i);
+		animationWalk->addSpriteFrameWithFile(nameSizeWalk);
+	}
+	animationWalk->setDelayPerUnit(AnimateEachTime/2);
+	animationWalk->setLoops(-1);
+	animationWalk->setRestoreOriginalFrame(true);
+	animateWalk = Animate::create(animationWalk);
+}
+
+bool Knight::init(weapon* const initialWeapon)
+{
+	actionManager = Director::getInstance()->getActionManager();
 	this->HP = this->maxHP = 5;
 	this->armor = this->maxArmor = 5;
 	this->MP = this->maxMP = 200;
 	this->gold = 0;
 	this->moveSpeedX = 0, this->moveSpeedY = 0;
-	this->setView(Sprite::create(filename));
-	this->setWeapon(initialWeapon);
+
+	this->knightView = Sprite::create("KnightImage/Stand1.png");
 	this->knightView->setPosition(Vec2::ZERO);
-	this->equipedWeapon->setPosition(Vec2(10,-14));
 	this->addChild(knightView,0);
+	this->knightView->setVisible(false);
+
+	this->knightStand = Sprite::create("KnightImage/Stand1.png");
+	this->knightWalk = Sprite::create("KnightImage/Walk1.png");
+	this->knightStand->setPosition(Vec2::ZERO);
+	this->knightWalk->setPosition(Vec2::ZERO);
+	this->addChild(knightStand, 0);
+	this->addChild(knightWalk, 0);
+	this->knightWalk->setVisible(false);
+
+	this->setWeapon(initialWeapon);
+	this->equipedWeapon->setPosition(Vec2(10,-14));
 	this->addChild(equipedWeapon,1);
+
+	this->initAnimation();
+	this->knightStand->runAction(animateStand);
+	this->knightWalk->runAction(animateWalk);
+	this->schedule(CC_SCHEDULE_SELECTOR(Knight::animateUpdate));
 
 	this->schedule(CC_SCHEDULE_SELECTOR(Knight::armorResumeUpdate), armorResumeTimeStart, CC_REPEAT_FOREVER,armorResumeTimeEach );
 
@@ -158,27 +200,33 @@ void Knight::addKeyboardEvents()
 			}
 			case EventKeyboard::KeyCode::KEY_D:
 			{
+				is_MoveRight = true;
 				this->schedule(CC_SCHEDULE_SELECTOR(Knight::moveUpdateD));
-				this->getView()->setFlippedX(false);
+				this->knightStand->setFlippedX(false);
+				this->knightWalk->setFlippedX(false);
 				this->getWeapon()->setFlippedX(false);
 				this->getWeapon()->setPosition(Vec2(10, -14));
 				break;
 			}
 			case EventKeyboard::KeyCode::KEY_A:
 			{
+				is_MoveLeft = true;
 				this->schedule(CC_SCHEDULE_SELECTOR(Knight::moveUpdateA));
-				this->getView()->setFlippedX(true);
+				this->knightStand->setFlippedX(true);
+				this->knightWalk->setFlippedX(true);
 				this->getWeapon()->setFlippedX(true);
 				this->getWeapon()->setPosition(Vec2(-10, -14));
 				break;
 			}
 			case EventKeyboard::KeyCode::KEY_W:
 			{
+				is_MoveUP = true;
 				this->schedule(CC_SCHEDULE_SELECTOR(Knight::moveUpdateW));
 				break;
 			}
 			case EventKeyboard::KeyCode::KEY_S:
 			{
+				is_MoveDown = true;
 				this->schedule(CC_SCHEDULE_SELECTOR(Knight::moveUpdateS));
 				break;
 			}
@@ -187,27 +235,34 @@ void Knight::addKeyboardEvents()
 		}
 	};
 
-	listener->onKeyReleased = [&](EventKeyboard::KeyCode code, Event*) {
-		switch (code) {
+	listener->onKeyReleased = [&](EventKeyboard::KeyCode code, Event*) 
+	{
+		switch (code)
+		{
 			case EventKeyboard::KeyCode::KEY_D:
+			{
+				is_MoveRight = false;
 				this->unschedule(CC_SCHEDULE_SELECTOR(Knight::moveUpdateD));
-				this->stopAllActions();
 				break;
-
+			}
 			case EventKeyboard::KeyCode::KEY_A:
+			{
+				is_MoveLeft = false;
 				this->unschedule(CC_SCHEDULE_SELECTOR(Knight::moveUpdateA));
-				this->stopAllActions();
 				break;
-
+			}
 			case EventKeyboard::KeyCode::KEY_W:
+			{
+				is_MoveUP = false;
 				this->unschedule(CC_SCHEDULE_SELECTOR(Knight::moveUpdateW));
-				this->stopAllActions();
 				break;
-
+			}
 			case EventKeyboard::KeyCode::KEY_S:
+			{
+				is_MoveDown = false;
 				this->unschedule(CC_SCHEDULE_SELECTOR(Knight::moveUpdateS));
-				this->stopAllActions();
 				break;
+			}
 		}
 	};
 
@@ -245,6 +300,22 @@ void Knight::moveUpdateS(float tmd)
 	direction.set(0, -trueSpeed);
 	auto moveBy = MoveBy::create(1 / 60.0f, direction);
 	this->runAction(Sequence::create(moveBy, nullptr));
+}
+
+void Knight::animateUpdate(float tmd)
+{
+	if (!is_Moving && (is_MoveUP || is_MoveRight || is_MoveLeft || is_MoveDown))
+	{
+		is_Moving = true;
+		this->knightStand->setVisible(false);
+		this->knightWalk->setVisible(true);
+	}
+	else if (is_Moving && (!is_MoveUP && !is_MoveRight && !is_MoveLeft && !is_MoveDown))
+	{
+		is_Moving = false;
+		this->knightStand->setVisible(true);
+		this->knightWalk->setVisible(false);
+	}
 }
 
 void Knight::armorResumeUpdate(float tmd)
