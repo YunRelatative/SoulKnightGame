@@ -3,10 +3,9 @@
 //确保头文件互相包含不出错
 
 #include "cocos2d.h"
-
 USING_NS_CC;//使用COCOS2D命名空间
 
-class Weapon;//武器，进行协调更改
+class Weapon;
 
 class Knight:public Sprite
 {
@@ -14,8 +13,9 @@ class Knight:public Sprite
 
 public:
 	Knight();
-	~Knight();
-
+	~Knight(); 
+	TMXTiledMap* map;
+	cocos2d::TMXLayer* _meta = map->getLayer("meta");//障碍物
 	static Knight* create(const std::string& filename);
 	virtual bool init();
 
@@ -37,6 +37,9 @@ public:
 	void moveUpdateW(float tmd);//每帧移动
 	void moveUpdateS(float tmd);//每帧移动
 
+	bool IfCollidable(Point position);
+	Point tileCoordForPosition(Point position);
+	
 private:
 	int gold = 0;//金钱
 
@@ -51,6 +54,7 @@ private:
 	unsigned int MP = maxMP;//当前子弹数
 
 	Weapon* weapon = nullptr;//获取当前武器
+	
 	unsigned int damage = 0;//伤害
 	float attackSpeed = 0;//攻击速度，调用武器进行赋值
 

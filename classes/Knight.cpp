@@ -66,6 +66,8 @@ bool Knight::init() {
 	this->gold = 0;
 	this->moveSpeedX = 0, this->moveSpeedY = 0;
 
+	
+
 	//this->weapon = Weapon::create();
 	//this->weapon->weaponInit(24.0f, 2, 0, 1, true, 11);
 	//this->weapon->setPosition(Vec2(40, 20));
@@ -168,4 +170,21 @@ void Knight::moveUpdateS(float tmd)
 	direction.set(0,-trueSpeed );
 	auto moveBy = MoveBy::create(1 / 60.0f, direction);
 	this->runAction(Sequence::create(moveBy, nullptr));
+}
+
+Point Knight::tileCoordForPosition(Point position)//转换成地图坐标
+{
+	int x = position.x / map->getTileSize().width - 8;
+	int y = ((map->getMapSize().height * map->getTileSize().height) - position.y) / map->getTileSize().height + 17;
+	return Point(x, y);
+}
+
+bool Knight::IfCollidable(Point position)
+{
+	position = tileCoordForPosition(position);
+	int tileGid = _meta->getTileGIDAt(position);
+	if (tileGid == 14338 || tileGid == 14354)//遇到墙面
+		return 1;
+	else
+		return 0;
 }

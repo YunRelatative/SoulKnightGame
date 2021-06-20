@@ -6,11 +6,10 @@ class bullet : public cocos2d::Sprite
 public:
 	static bullet* create(const std::string& filename);
 	void setSpeed(float theSpeed);
-	void shoot(bullet* theBullet, cocos2d::Vec2 realDest);
-	void setPhy(bullet* theBullet);
+	void shoot(cocos2d::Vec2 offset);
+	void setPhy();
+	//void init();
 protected:
 	float speed;
 };
-struct bullets {
 
-};

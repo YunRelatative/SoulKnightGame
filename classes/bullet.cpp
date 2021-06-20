@@ -14,22 +14,26 @@ void bullet::setSpeed(float theSpeed)
 {
 	this->speed = theSpeed;
 }
-void bullet::shoot(bullet* theBullet, cocos2d::Vec2 offset)
+void bullet::shoot(cocos2d::Vec2 offset)
 {
 	offset.normalize();
 	auto shootAmount = offset * 1000;
-	auto realDest = shootAmount + theBullet->getPosition();
+	auto realDest = shootAmount + this->getPosition();
 	auto actionMove = cocos2d::MoveTo::create(this->speed, realDest);
 	auto actionRemove = cocos2d::RemoveSelf::create();
-	theBullet->runAction(cocos2d::Sequence::create(actionMove, actionRemove, nullptr));
+	this->runAction(cocos2d::Sequence::create(actionMove->clone(), actionRemove, nullptr));
+	
 }
-void bullet::setPhy(bullet* theBullet)
+void bullet::setPhy()
 {
-	auto physicsBody = cocos2d::PhysicsBody::createBox(theBullet->getContentSize(), cocos2d::PhysicsMaterial(0.0f, 0.0f, 0.0f));
+	auto physicsBody = cocos2d::PhysicsBody::createBox(this->getContentSize(), cocos2d::PhysicsMaterial(0.0f, 0.0f, 0.0f));
 	physicsBody->setDynamic(false);
 	physicsBody->setContactTestBitmask(0xFFFFFFFF);
-	theBullet->setPhysicsBody(physicsBody);
-	theBullet->setTag(10);
+	this->setPhysicsBody(physicsBody);
+	this->setTag(10);
 }
+
+
+
 
 

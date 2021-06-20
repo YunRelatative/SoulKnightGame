@@ -1,165 +1,97 @@
 #include "StartScene.h"
-
-#include "ui/CocosGUI.h"
-#include "1stScene.h"
-using namespace CocosDenshion;
+#include "HelloWorldScene.h"
+#include "SafeScene.h"
+#include "Scene/SystemScene.h"
+#include "BGM/BGM.h"
+USING_NS_CC;
 
 Scene* StartScene::createScene()
 {
-    auto scene = Scene::create();
-    auto layer = StartScene::create();
-    scene->addChild(layer);
-    return scene;
+    return StartScene::create();
+}
+
+static void problemLoading(const char* filename)
+{
+    printf("Error while loading: %s\n", filename);
+    printf("Depending on how you compiled you might have to add 'Resources/' in front of filenames in StartScene.cpp\n");
 }
 
 bool StartScene::init()
 {
-    if (!Scene::init()){
+    if (!Scene::init())
+    {
         return false;
     }
-    Size visibleSize = Director::getInstance()->getVisibleSize();
+    BGM::playBGM("bkMusic.mp3");
+    auto visibleSize = Director::getInstance()->getVisibleSize();
+    Vec2 origin = Director::getInstance()->getVisibleOrigin();
 
-    /* ÓÎÏ·±êÌâÍ¼Æ¬ */
-    Sprite* titleSprite = Sprite::create("StartTitle.png");
-    titleSprite->setPosition(Point(visibleSize.width/5, visibleSize.height-40));
-    this->addChild(titleSprite, 2);
+    MenuItemImage* startItem = MenuItemImage::create(
+        "NewGame.png",
+        "NewGameSelected.png",
+        CC_CALLBACK_1(StartScene::menuSceneChangeCallback, this));
 
-    /* ³õÊ¼»¯±³¾°Í¼Æ¬ */
-    this->initBGimage();
+    if (startItem == nullptr ||
+        startItem->getContentSize().width <= 0 ||
+        startItem->getContentSize().height <= 0)
+    {
+        problemLoading("'NewGame.png' and 'NewGameSelected.png'");
+    }
+    else
+    {
+        float x = origin.x + visibleSize.width/2 ;
+        float y = origin.y + startItem->getContentSize().height / 2+40;
+        startItem->setPosition(Vec2(x, y));
+    }
 
-    /* ³õÊ¼»¯±³¾°ÒôÀÖ */
-    this->initBGmusic();
+    auto stopItem = MenuItemImage::create(
+      "StopButton.png",
+      "StopButtonPressed.png",
+      CC_CALLBACK_1(StartScene::menuSystemCallback, this));
+    stopItem->setPosition(Vec2(visibleSize.width - stopItem->getContentSize().width / 2, visibleSize.height - stopItem->getContentSize().height / 2));
 
-    /* ¼ÓÔØUI */
-    loadUI();
+    Menu* menu = Menu::create(startItem, stopItem, NULL);
+    menu->setPosition(Vec2::ZERO);
+    this->addChild(menu, 1);
 
+    Sprite* StartPicture = Sprite::create("StartPicture.png");
+    if (StartPicture == nullptr)
+    {
+        problemLoading("'StartPicture.png'");
+    }
+    else
+    {
+        float x = origin.x + visibleSize.width - StartPicture->getContentSize().width / 2;
+        float y = origin.y + StartPicture->getContentSize().height / 2;
+        StartPicture->setPosition(Vec2(x, y));
+
+        this->addChild(StartPicture, 0);
+    }
+
+    Sprite* Logo = Sprite::create("Logo.png");
+    if (Logo == nullptr)
+    {
+        problemLoading("'Logo.png'");
+    }
+    else
+    {
+        float x = origin.x + Logo->getContentSize().width / 2;
+        float y = origin.y + visibleSize.height - Logo->getContentSize().height / 2;
+        Logo->setPosition(Vec2(x, y));
+
+        this->addChild(Logo, 0);
+    }
+
+    
     return true;
 }
 
-void StartScene::initBGimage() {
-    Size visibleSize = Director::getInstance()->getVisibleSize();
-
-    Sprite* bgImage = Sprite::create("StartScene0.png");
-    bgImage->setPosition(Point(visibleSize.width / 2, visibleSize.height / 2));
-    this->addChild(bgImage,0);
-}
-void StartScene::initBGmusic() {
-    CocosDenshion::SimpleAudioEngine::getInstance()->playBackgroundMusic("StartSceneBGmusic.wav", true);
-    isBGmusicplaying = true;
-}
-
-void StartScene::turnOnEffectMusic() {
-    isEffecMusicTurnOn = true;
-}
-void StartScene::turnOffEffectMusic() {
-    isEffecMusicTurnOn = false;
-}
-
-void StartScene::playBGmusic() {
-    CocosDenshion::SimpleAudioEngine::getInstance()->resumeBackgroundMusic();
-    isBGmusicplaying = true;
-   // initBGmusic();
-}
-
-void StartScene::pauseBGmusic() {
-    CocosDenshion::SimpleAudioEngine::getInstance()->pauseBackgroundMusic();
-    isBGmusicplaying = false;
-}
-
-void StartScene::playEffectMusic() {
-    CocosDenshion::SimpleAudioEngine::getInstance()->playEffect("Button.mp3");
-}
-
-void StartScene::loadUI() {
-    Size visibleSize = Director::getInstance()->getVisibleSize();
-
-    /*±³¾°ÒôÀÖ°´Å¥*/
-    auto Btn_BGmusic = CheckBox::create("Btn_backgroundmusic.png",
-        "Btn_backgroundmusic_PressDown.png");
-    Btn_BGmusic->setPosition(Point(visibleSize.width/15, visibleSize.height/14));
-    this->addChild(Btn_BGmusic,3);
-    Btn_BGmusic->addEventListener(CC_CALLBACK_2(StartScene::BGmusicSelectedEvent, this));
-
-    /*ÒôÐ§°´Å¥*/
-    auto Btn_effectMusic = CheckBox::create("Btn_effect.png",
-        "Btn_effect_PressDown.png");
-    Btn_effectMusic->setPosition(Point(visibleSize.width / 15, visibleSize.height / 5));
-    this->addChild(Btn_effectMusic,3);
-    Btn_effectMusic->addEventListener(CC_CALLBACK_2(StartScene::effectMusicSelectedEvent, this));
-
-    /*ÐÂÓÎÏ·°´Å¥*/
-    Button* Btn_NewGame = Button::create("NewGame.png",
-        "NewGame_PressDown.png");
-    Btn_NewGame->setPosition(Point(visibleSize.width / 2, visibleSize.height / 10));
-    this->addChild(Btn_NewGame,3);
-    Btn_NewGame->addTouchEventListener(this, toucheventselector(StartScene::NewGameEvent));
-
-    /*¶ÁÈ¡´æµµ*/
-    //TODO:
-
-
-
-
-
-
-
-
-
-}
-
-void StartScene::BGmusicSelectedEvent(Ref* pSender, cocos2d::ui::CheckBox::EventType type) {
-    switch (type)
-    {
-        case cocos2d::ui::CheckBox::EventType::SELECTED: {
-            if (isEffecMusicTurnOn)
-                playEffectMusic();
-            pauseBGmusic();
-         }break;
-        case cocos2d::ui::CheckBox::EventType::UNSELECTED: {
-            if (isEffecMusicTurnOn)
-                playEffectMusic();
-            playBGmusic();
-         }break;
-    }
-}
-
-void StartScene::effectMusicSelectedEvent(Ref* pSender, cocos2d::ui::CheckBox::EventType type)
+void StartScene::menuSceneChangeCallback(Ref* pSender)
 {
-    switch (type) {
-    case cocos2d::ui::CheckBox::EventType::SELECTED:
-        playEffectMusic();
-        isEffecMusicTurnOn = false;
-        break;
-    case cocos2d::ui::CheckBox::EventType::UNSELECTED:
-        isEffecMusicTurnOn = true;
-        break;
-    }
+    Director::getInstance()->replaceScene(SafeScene::createScene());
 }
 
-void StartScene::NewGameEvent(Ref*,TouchEventType type)
+void StartScene::menuSystemCallback(Ref* pSender)
 {
-    switch (type) {
-        case TouchEventType::TOUCH_EVENT_BEGAN: {
-             if (isEffecMusicTurnOn)
-                playEffectMusic();
-             Size visibleSize = CCDirector::getInstance()->getVisibleSize();
-             Sprite* bgImage = Sprite::create("StartScene1.png");
-             bgImage->setPosition(Point(visibleSize.width / 2, visibleSize.height / 2));
-             this->addChild(bgImage, 1);
-            }break;
-        case TouchEventType::TOUCH_EVENT_ENDED: {
-            //TODO:
-
-             Director::getInstance()->replaceScene(SafeRoomScene::createScene());
-			
-
-        }
-    }
-}
-
-bool StartScene::BGmusic(){
-    return isBGmusicplaying;
-}
-bool StartScene::effectMusic() {
-    return isEffecMusicTurnOn;
+  Director::getInstance()->pushScene(SystemScene::create());
 }
