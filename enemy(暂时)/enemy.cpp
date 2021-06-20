@@ -1,9 +1,10 @@
 #include "enemy.h"
+#include "2d/CCActionGrid.h"
+#include "cocos2d.h"
 #include "Knight.h"
-#include "BattleRoom.h"
-#include "BattleScene.h"
+//#include "1stScene.h"
 #include "weapon.h"
-#include "bullet.h"
+#include "SafeScene.h"
 
 Enemy::Enemy() {}
 Enemy::~Enemy() {}
@@ -25,14 +26,10 @@ bool Enemy::init()
 	isKilled = false;
 	isAdded = true;
 	setType(enemyType);
-	addEvent();
+	setAttackRange();
 	return true;
 }
-void Enemy::addEvent() 
-{
-	this->schedule(SEL_SCHEDULE(Enemy::moveUpdate),1.0f);
 
-}
 
 
 bool Enemy::isCrash(Knight* knight) {
@@ -70,13 +67,13 @@ void Enemy::setAttackRange() {
 	switch (enemyType)
 	{
 	case 0:
-		ATTACKRANGE = 250;
+		ATTACKRANGE = 300;
 		break;
 	case 1:
 		ATTACKRANGE = SIGHTRANGE;
 		break;
 	case 2:
-		ATTACKRANGE = 50;
+		ATTACKRANGE = 400;
 		break;
 	case 3:
 		ATTACKRANGE = 350;
@@ -86,7 +83,7 @@ void Enemy::setAttackRange() {
 	}
 }
 
-bool Enemy::inRoom(const BattleRoom* battleRoom, Point myPos) {
+/*bool Enemy::inRoom(const SoulKnight* battleRoom, Point myPos) {
 	Point upLeftPos = battleRoom->getUpleftVertex();
 	Point downRightPos = battleRoom->getDownRightVertex();
 	if (myPos.x >= upLeftPos.x && myPos.x <= downRightPos.x &&
@@ -94,7 +91,7 @@ bool Enemy::inRoom(const BattleRoom* battleRoom, Point myPos) {
 		return true;
 	}
 	return false;
-}
+}*/
 
 void Enemy::spriteChangeDirection() {
 	if (moveSpeedX == 0) {
@@ -108,48 +105,43 @@ void Enemy::spriteChangeDirection() {
 	}
 }
 
-void Enemy::moveUpdate(Knight* knight, const BattleRoom* battleRoom)
+void Enemy::update(Knight* knight, const Scene* battleRoom)
 {
-	aiOfEnemy(knight, battleRoom);
-	float trueSpeedX = moveSpeedX / 60.0f;
-	float trueSpeedY = moveSpeedY / 60.0f;
-	Vec2 direction;
-	direction.set(trueSpeedX, trueSpeedY);
-	auto moveBy = MoveBy::create(1 / 60.0f, direction);
-	this->runAction(Sequence::create(moveBy, nullptr));
+	this->aiOfEnemy(knight, battleRoom);
 }
 
-void Enemy::aiOfEnemy(Knight* knight, const BattleRoom* battleRoom) {
+void Enemy::aiOfEnemy(Knight* knight, const Scene* battleRoom) {
 	if (knight == nullptr || battleRoom == nullptr) {
 		return;
 	}
-
+	if (enemyShout >= 600)
+		enemyShout = 0;
 	const Point enemyPos = this->getPosition();
 	const Point knightPos = knight->getPosition();
 	const float disBetweenEnemyAndKnight =
 		enemyPos.getDistance(knightPos);  //获取二者距离，用于后续判断
 
-	if (disBetweenEnemyAndKnight > SIGHTRANGE) {
-		/*patrolRoute(battleRoom, knight);*/
-
+	if (disBetweenEnemyAndKnight <0) {
+		stopAllActions();
 	}
 	else {
 		if (disBetweenEnemyAndKnight > ATTACKRANGE) {
 			moveSpeedX = 3.0f * (knightPos.x - enemyPos.x) / disBetweenEnemyAndKnight;
 			moveSpeedY = 3.0f * (knightPos.y - enemyPos.y) / disBetweenEnemyAndKnight;
+			float time = disBetweenEnemyAndKnight /40.0f;
+			auto moveBy = MoveBy::create(1/60.0f,Vec2((knightPos.x - enemyPos.x)/ time/30.0f, (knightPos.y - enemyPos.y)/ time/30.0f));
+			this->runAction(moveBy);
 		}
 		else {
+			enemyShout++;
 			attackTheKnight(knight, disBetweenEnemyAndKnight, battleRoom);
 		}
 	}
-	if (HP == 0)
-	{
-		this->unschedule(SEL_SCHEDULE(Enemy::moveUpdate));
-	}
+
 
 }
 
-void Enemy::attackTheKnight(Knight* knight,float disBetweenEnemyAndKnight, const BattleRoom* battleRoom) {
+void Enemy::attackTheKnight(Knight* knight,float disBetweenEnemyAndKnight, const Scene* battleRoom) {
 	if (disBetweenEnemyAndKnight < ATTACKRANGE) {
 		switch (enemyType)
 		{
@@ -174,41 +166,121 @@ void Enemy::attackTheKnight(Knight* knight,float disBetweenEnemyAndKnight, const
 
 void Enemy::simpleAttack(Knight* knight, float disBetweenEnemyAndKnight)
 {
-	bullet* firebullet = bullet::create("enemybullet1.png");
-	Vec2 target = knight->getPosition() - this->getPosition();
-	fireSpeed = 8.0f;
-	firebullet->setPosition(this->getPosition());
-	firebullet->setSpeed(fireSpeed);
-	firebullet->shoot(firebullet, target);
+	bullet* firebullet = bullet::create("enemybullet2.png");
+	Vec2 target = knight->getPosition()-this->getPosition();
+	stopAllActions();
+	if (enemyShout % 60 == 1)
+	{
+		this->getParent()->addChild(firebullet);
+		fireSpeed = 8.0f;
+		firebullet->setPosition(this->getPosition());
+		firebullet->setSpeed(fireSpeed);
+	    firebullet->shoot(target);
+		vecEnemybullet.pushBack(firebullet);
+	}
+		
 }
 
-void Enemy::crashAttack(Knight* knight, float disBetweenEnemyAndKnight, const BattleRoom* battleRoom)
+void Enemy::crashAttack(Knight* knight, float disBetweenEnemyAndKnight, const Scene* battleRoom)
 {
-	auto enemyPos = this->getPosition();
-	auto knightPos = knight->getPosition();
-	moveSpeedX = 6.0f * (knightPos.x - enemyPos.x) / disBetweenEnemyAndKnight;
-	moveSpeedY = 6.0f * (knightPos.y - enemyPos.y) / disBetweenEnemyAndKnight;
-
+	if (enemyShout % 240 == 1)
+	{
+		auto enemyPos = this->getPosition();
+		auto knightPos = knight->getPosition();
+		float time = disBetweenEnemyAndKnight / 60.0f;
+		auto moveBy = MoveBy::create(1, Vec2((knightPos.x - enemyPos.x) , (knightPos.y - enemyPos.y)));
+		this->runAction(moveBy);
+	}
 }
 
 
 void Enemy::magicAttack(Knight* knight, float disBetweenEnemyAndKnight)
 {
-	bullet* firebullet = bullet::create("enemybullet2.png");
-	Vec2 target = knight->getPosition() - this->getPosition();
-	fireSpeed = 6.0f;
-	firebullet->setPosition(this->getPosition());
-	firebullet->setSpeed(fireSpeed);
-	firebullet->shoot(firebullet, target);
+	
+	Vec2 target;
+	stopAllActions();
+	if (enemyShout %240==121)
+	{
+	
+		for (int i = 0; i <= 11; i++)
+		{
+			bullet* firebullet = bullet::create("enemybullet2.png");
+			this->getParent()->addChild(firebullet);
+			fireSpeed = 6.0f;
+			firebullet->setPosition(this->getPosition());
+			firebullet->setSpeed(fireSpeed);
+			target.x = 450 * cos(3.14 / 6.0 * i);
+			target.y = 450 * sin(3.14 / 6.0 * i);
+			firebullet->shoot(target);
+			vecEnemybullet.pushBack(firebullet);
+		}
+
+	}
+	
 }
 
 void Enemy::gunnerAttack(Knight* knight, float disBetweenEnemyAndKnight)
 {
-	bullet* firebullet = bullet::create("enemybullet2.png");
-	Vec2 target = knight->getPosition() - this->getPosition();
-	fireSpeed = 2.0f;
-	firebullet->setPosition(this->getPosition());
-	firebullet->setSpeed(fireSpeed);
-	firebullet->shoot(firebullet, target);
+	Vec2 target;
+	stopAllActions();
+	if (enemyShout % 240 >= 121 && enemyShout % 240 <= 131)
+	{
+		for (int i = 0; i <= 5; i++)
+		{
+			bullet* firebullet = bullet::create("enemybullet6.png");
+			this->getParent()->addChild(firebullet);
+			fireSpeed = 6.0f;
+			firebullet->setPosition(this->getPosition());
+			firebullet->setSpeed(fireSpeed);
+			target.x = 450 * cos(3.14 / 3.0 * (i % 6) + 3.14 / 45.0 * (enemyShout % 12));
+			target.y = 450 * sin(3.14 / 3.0 * (i % 6) + 3.14 / 45.0 * (enemyShout % 12));
+			firebullet->shoot(target);
+			vecEnemybullet.pushBack(firebullet);
+		}
+	}
+	else
+	{
+		if (enemyShout % 60 >= 39 && enemyShout % 10 == 9)
+		{
+			bullet* firebullet = bullet::create("enemybullet8.png");
+			target = knight->getPosition() - this->getPosition();
+			this->getParent()->addChild(firebullet);
+			fireSpeed = 8.0f;
+			firebullet->setPosition(this->getPosition());
+			firebullet->setSpeed(fireSpeed);
+			firebullet->shoot(target);
+			vecEnemybullet.pushBack(firebullet);
+		}
 
+
+
+	}
+}
+void Enemy::bulletadd()
+{
+	int bulletNum;
+	bulletNum = vecEnemybullet.size();
+	for (auto it = vecEnemybullet.rbegin(); it != vecEnemybullet.rbegin() + bulletNum; it++)
+	{
+		(*it)->life++;
+	}
+
+
+}
+
+void Enemy::bulletmove()
+{
+	for (INT32 i = 0; i < vecEnemybullet.size(); ++i)
+	{
+		auto bullet = vecEnemybullet.at(i);
+		if (bullet->life >= 60 * 6)
+		{
+			bullet->removeFromParent();
+			auto actionRemove = RemoveSelf::create();
+			bullet->runAction(Sequence::create(actionRemove, nullptr));
+			vecEnemybullet.eraseObject(bullet);
+			--i;
+			continue;
+		}
+	}
 }
